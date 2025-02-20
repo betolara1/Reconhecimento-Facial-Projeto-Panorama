@@ -31,12 +31,12 @@ reconhecimento-facial-projeto-panorama/
 ├── db.py
 └── requirements.txt
 
-```plaintext
+```
 
 ## ⚙️ Instalação
 
 1. Clone o repositório:
-```bash
+```shellscript
 git clone https://github.com/betolara1/Reconhecimento-Facial-Projeto-Panorama.git
 ```
 
