@@ -21,7 +21,6 @@ Sistema de reconhecimento facial desenvolvido para o projeto Panorama de Piracic
 - SQLite (Banco de dados)
 
 ## 📦 Estrutura do Projeto
-...
 ```
 
 reconhecimento-facial-projeto-panorama/
