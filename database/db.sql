@@ -1,0 +1,31 @@
+CREATE DATABASE cadastro;
+
+USE cadastro;
+
+CREATE TABLE IF NOT EXISTS usuario(
+    cod INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nome CHAR(50) NOT NULL,
+    telefone VARCHAR(20) NOT NULL,
+    cep VARCHAR(10) NOT NULL,
+    rua VARCHAR(100) NOT NULL,
+    numero VARCHAR(10) NOT NULL,
+    bairro VARCHAR(50) NOT NULL,
+    cidade VARCHAR(50) NOT NULL,
+    uf CHAR(2) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS fotos_usuario (
+    id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    usuario_id INT UNSIGNED NOT NULL,
+    caminho VARCHAR(255) NOT NULL,
+    data_captura DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuario(cod)
+);
+
+CREATE TABLE IF NOT EXISTS login (
+    id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    usuario_id INT UNSIGNED NOT NULL,
+    data_login DATE NOT NULL,
+    hora_login TIME NOT NULL,
+    FOREIGN KEY (usuario_id) REFERENCES usuario(cod)
+);
