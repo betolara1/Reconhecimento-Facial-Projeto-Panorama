@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Facial Melhorado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-weight: 500;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .camera-container {
+            position: relative;
+            width: 640px;
+            margin: 0 auto;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            background: #000;
+        }
+        
+        #videoElement {
+            width: 100%;
+            height: 480px;
+            display: block;
+            transform: scaleX(-1);
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+        
+        #countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 72px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            width: 120px;
+            height: 120px;
+            line-height: 120px;
+            text-align: center;
+            border-radius: 50%;
+            display: none;
+            border: 4px solid #4CAF50;
+        }
+        
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ccc;
+            transition: all 0.3s ease;
+        }
+        
+        .status-indicator.active {
+            background-color: #4CAF50;
+            box-shadow: 0 0 15px #4CAF50;
+        }
+        
+        .quality-meter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .quality-bar {
+            width: 100px;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .quality-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f44336, #ff9800, #4caf50);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .face-guide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 250px;
+            border: 3px dashed rgba(255,255,255,0.5);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .face-box {
+            position: absolute;
+            border: 3px solid #4CAF50;
+            border-radius: 8px;
+            pointer-events: none;
+            transition: all 0.2s ease;
+        }
+        
+        .confidence-display {
+            position: absolute;
+            bottom: 60px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .capture-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        
+        #result {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 24px;
+            font-weight: 500;
+            min-height: 30px;
+            padding: 15px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .result-success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .result-error {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+        }
+        
+        .instruction {
+            text-align: center;
+            margin: 20px 0;
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+            gap: 20px;
+        }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            z-index: 1000;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .debug-info {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        
+        @media (max-width: 768px) {
+            .camera-container {
+                width: 100%;
+                max-width: 480px;
+            }
+            
+            #videoElement {
+                height: 360px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="loading-spinner"></div>
+        <div>Carregando sistema de reconhecimento facial...</div>
+        <div style="font-size: 16px; margin-top: 10px; opacity: 0.8;">Aguarde enquanto preparamos tudo para você</div>
+    </div>
+
+    <div class="container">
+        <h1>🔐 Login Facial Inteligente</h1>
+        
+        <div class="main-card">
+            <div class="camera-container">
+                <video id="videoElement" autoplay muted></video>
+                <div class="overlay">
+                    <div class="status-bar">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="status-indicator" id="faceStatus"></div>
+                            <span id="detectionMessage">Inicializando...</span>
+                        </div>
+                        <div class="quality-meter">
+                            <span style="font-size: 12px;">Qualidade:</span>
+                            <div class="quality-bar">
+                                <div class="quality-fill" id="qualityFill"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="face-guide"></div>
+                    <div id="faceBox" class="face-box" style="display: none;"></div>
+                    <div id="countdown"></div>
+                    <div class="confidence-display" id="confidenceDisplay" style="display: none;"></div>
+                    <div class="debug-info" id="debugInfo" style="display: none;"></div>
+                </div>
+                
+                <button id="captureButton" class="btn btn-primary capture-btn">
+                    🎯 Verificar Identidade
+                </button>
+            </div>
+            
+            <div id="result"></div>
+            
+            <div class="instruction">
+                <strong>📋 Instruções:</strong><br>
+                • Posicione seu rosto dentro do círculo guia<br>
+                • Mantenha boa iluminação e olhe diretamente para a câmera<br>
+                • O reconhecimento iniciará automaticamente quando detectar qualidade adequada
+            </div>
+            
+            <div class="controls">
+                <button onclick="window.location.href='/'" class="btn btn-secondary">
+                    ← Voltar ao Menu
+                </button>
+                <button id="settingsBtn" class="btn btn-secondary" onclick="toggleSettings()">
+                    ⚙️ Configurações
+                </button>
+            </div>
+            
+            <div id="settingsPanel" style="display: none; margin-top: 20px; padding: 20px; background: #f5f5f5; border-radius: 10px;">
+                <h3>Configurações Avançadas</h3>
+                <div style="margin: 10px 0;">
+                    <label>Sensibilidade: </label>
+                    <input type="range" id="sensitivitySlider" min="0.3" max="0.6" step="0.05" value="0.4">
+                    <span id="sensitivityValue">0.4</span>
+                </div>
+                <div style="margin: 10px 0;">
+                    <label>
+                        <input type="checkbox" id="debugMode"> Modo Debug
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+    <script>
+        let countdownInterval;
+        let faceDetected = false;
+        let faceDetectionStartTime = null;
+        let isProcessing = false;
+        let video;
+        let isModelLoaded = false;
+        let detectionInterval;
+        let currentSensitivity = 0.4;
+        let debugMode = false;
+        
+        // Configurações
+        const CONFIG = {
+            DETECTION_INTERVAL: 100,
+            STABLE_DETECTION_TIME: 2000,
+            COUNTDOWN_TIME: 3,
+            MIN_FACE_SIZE: 100,
+            QUALITY_THRESHOLD: 0.7
+        };
+        
+        async function loadModels() {
+            console.log('Carregando modelos de IA...');
+            try {
+                await Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri('https://justadudewhohacks.github.io/face-api.js/weights'),
+                    faceapi.nets.faceLandmark68Net.loadFromUri('https://justadudewhohacks.github.io/face-api.js/weights'),
+                    faceapi.nets.faceRecognitionNet.loadFromUri('https://justadudewhohacks.github.io/face-api.js/weights')
+                ]);
+                console.log('Modelos carregados com sucesso!');
+                isModelLoaded = true;
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                console.error('Erro ao carregar modelos:', error);
+                alert('Erro ao carregar modelos de IA. Verifique sua conexão.');
+            }
+        }
+
+        async function initCamera() {
+            console.log('Inicializando câmera...');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    }
+                });
+                
+                video = document.getElementById('videoElement');
+                video.srcObject = stream;
+                
+                video.onloadedmetadata = () => {
+                    console.log('Câmera inicializada, iniciando detecção...');
+                    startFaceDetection();
+                };
+            } catch (err) {
+                console.error("Erro ao acessar câmera:", err);
+                handleCameraError(err);
+            }
+        }
+        
+        function handleCameraError(error) {
+            let message = "Erro ao acessar a câmera. ";
+            switch(error.name) {
+                case 'NotAllowedError':
+                    message += "Por favor, permita o acesso à câmera.";
+                    break;
+                case 'NotFoundError':
+                    message += "Nenhuma câmera encontrada.";
+                    break;
+                case 'NotReadableError':
+                    message += "Câmera está sendo usada por outro aplicativo.";
+                    break;
+                default:
+                    message += "Verifique se sua câmera está funcionando.";
+            }
+            alert(message);
+        }
+
+        function calculateFaceQuality(detection) {
+            const { width, height } = detection.box;
+            const area = width * height;
+            const minArea = CONFIG.MIN_FACE_SIZE * CONFIG.MIN_FACE_SIZE;
+            
+            // Score baseado no tamanho
+            let sizeScore = Math.min(area / (minArea * 4), 1);
+            
+            // Score baseado na confiança da detecção
+            let confidenceScore = detection.score || 0.5;
+            
+            // Score baseado na posição (centralização)
+            const videoEl = document.getElementById('videoElement');
+            const centerX = videoEl.width / 2;
+            const centerY = videoEl.height / 2;
+            const faceX = detection.box.x + detection.box.width / 2;
+            const faceY = detection.box.y + detection.box.height / 2;
+            
+            const distanceFromCenter = Math.sqrt(
+                Math.pow(faceX - centerX, 2) + Math.pow(faceY - centerY, 2)
+            );
+            const maxDistance = Math.sqrt(Math.pow(centerX, 2) + Math.pow(centerY, 2));
+            let positionScore = 1 - (distanceFromCenter / maxDistance);
+            
+            // Score final
+            const finalScore = (sizeScore * 0.4 + confidenceScore * 0.4 + positionScore * 0.2);
+            
+            return {
+                overall: finalScore,
+                size: sizeScore,
+                confidence: confidenceScore,
+                position: positionScore
+            };
+        }
+
+        async function startFaceDetection() {
+            if (!isModelLoaded) return;
+            
+            const videoEl = document.getElementById('videoElement');
+            const statusIndicator = document.getElementById('faceStatus');
+            const detectionMessage = document.getElementById('detectionMessage');
+            const faceBox = document.getElementById('faceBox');
+            const qualityFill = document.getElementById('qualityFill');
+            const confidenceDisplay = document.getElementById('confidenceDisplay');
+            const debugInfo = document.getElementById('debugInfo');
+
+            if (detectionInterval) clearInterval(detectionInterval);
+
+            detectionInterval = setInterval(async () => {
+                if (isProcessing) return;
+
+                try {
+                    const detection = await faceapi.detectSingleFace(
+                        videoEl,
+                        new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3 })
+                    );
+
+                    if (detection) {
+                        const quality = calculateFaceQuality(detection);
+                        
+                        // Atualizar visualização da face
+                        const { x, y, width, height } = detection.box;
+                        faceBox.style.left = (videoEl.width - x - width) + 'px';
+                        faceBox.style.top = y + 'px';
+                        faceBox.style.width = width + 'px';
+                        faceBox.style.height = height + 'px';
+                        faceBox.style.display = 'block';
+                        
+                        // Atualizar barra de qualidade
+                        qualityFill.style.width = (quality.overall * 100) + '%';
+                        
+                        // Atualizar cor da caixa baseada na qualidade
+                        if (quality.overall >= CONFIG.QUALITY_THRESHOLD) {
+                            faceBox.style.borderColor = '#4CAF50';
+                            statusIndicator.classList.add('active');
+                        } else {
+                            faceBox.style.borderColor = '#FF9800';
+                            statusIndicator.classList.remove('active');
+                        }
+                        
+                        // Debug info
+                        if (debugMode) {
+                            debugInfo.style.display = 'block';
+                            debugInfo.innerHTML = `
+                                Qualidade: ${(quality.overall * 100).toFixed(1)}%<br>
+                                Tamanho: ${width}x${height}<br>
+                                Confiança: ${(detection.score * 100).toFixed(1)}%
+                            `;
+                        }
+                        
+                        // Lógica de detecção estável
+                        if (quality.overall >= CONFIG.QUALITY_THRESHOLD) {
+                            if (!faceDetected) {
+                                faceDetected = true;
+                                faceDetectionStartTime = Date.now();
+                                detectionMessage.textContent = 'Rosto detectado! Mantenha a posição...';
+                            }
+                            
+                            const elapsedTime = Date.now() - faceDetectionStartTime;
+                            const remainingTime = Math.max(CONFIG.STABLE_DETECTION_TIME - elapsedTime, 0);
+                            
+                            if (remainingTime > 0) {
+                                detectionMessage.textContent = `Estabilizando... ${Math.ceil(remainingTime / 1000)}s`;
+                            } else if (!isProcessing) {
+                                detectionMessage.textContent = 'Qualidade excelente! Iniciando reconhecimento...';
+                                startCountdown();
+                            }
+                        } else {
+                            faceDetected = false;
+                            faceDetectionStartTime = null;
+                            
+                            if (quality.size < 0.3) {
+                                detectionMessage.textContent = 'Aproxime-se mais da câmera';
+                            } else if (quality.position < 0.5) {
+                                detectionMessage.textContent = 'Centralize seu rosto na tela';
+                            } else {
+                                detectionMessage.textContent = 'Melhore a iluminação e posicionamento';
+                            }
+                        }
+                    } else {
+                        // Nenhuma face detectada
+                        faceBox.style.display = 'none';
+                        statusIndicator.classList.remove('active');
+                        faceDetected = false;
+                        faceDetectionStartTime = null;
+                        detectionMessage.textContent = 'Posicione seu rosto na área indicada';
+                        qualityFill.style.width = '0%';
+                        
+                        if (debugMode) {
+                            debugInfo.style.display = 'none';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro na detecção:', error);
+                    detectionMessage.textContent = 'Erro na detecção facial';
+                }
+            }, CONFIG.DETECTION_INTERVAL);
+        }
+
+        function startCountdown() {
+            if (isProcessing) return;
+            
+            isProcessing = true;
+            const countdownElement = document.getElementById('countdown');
+            const resultElement = document.getElementById('result');
+            const captureButton = document.getElementById('captureButton');
+            const detectionMessage = document.getElementById('detectionMessage');
+            
+            captureButton.style.display = 'none';
+            resultElement.textContent = '';
+            resultElement.className = '';
+            countdownElement.style.display = 'block';
+            detectionMessage.textContent = 'Preparando captura...';
+            
+            let count = CONFIG.COUNTDOWN_TIME;
+            countdownElement.textContent = count;
+            
+            countdownInterval = setInterval(() => {
+                count--;
+                countdownElement.textContent = count;
+                
+                if (count <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownElement.style.display = 'none';
+                    detectionMessage.textContent = 'Processando reconhecimento...';
+                    captureAndRecognize();
+                }
+            }, 1000);
+        }
+
+        function captureAndRecognize() {
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            const resultElement = document.getElementById('result');
+            const captureButton = document.getElementById('captureButton');
+            const detectionMessage = document.getElementById('detectionMessage');
+            
+            // Capturar frame atual
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+            
+            resultElement.textContent = '🔍 Analisando características faciais...';
+            resultElement.className = '';
+            detectionMessage.textContent = 'Comparando com banco de dados...';
+            
+            // Enviar para processamento
+            fetch('/process_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    image: dataURL,
+                    threshold: currentSensitivity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    resultElement.textContent = `✅ ${data.message}`;
+                    resultElement.className = 'result-success';
+                    detectionMessage.textContent = 'Login realizado com sucesso!';
+                    
+                    if (data.confidence) {
+                        const confidenceDisplay = document.getElementById('confidenceDisplay');
+                        confidenceDisplay.textContent = `Confiança: ${(data.confidence * 100).toFixed(1)}%`;
+                        confidenceDisplay.style.display = 'block';
+                    }
+                    
+                    // Redirecionar após sucesso
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                } else {
+                    resultElement.textContent = `❌ ${data.message}`;
+                    resultElement.className = 'result-error';
+                    captureButton.style.display = 'block';
+                    detectionMessage.textContent = 'Tente novamente';
+                    resetDetection();
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                resultElement.textContent = '⚠️ Erro de conexão. Tente novamente.';
+                resultElement.className = 'result-error';
+                captureButton.style.display = 'block';
+                detectionMessage.textContent = 'Erro no processamento';
+                resetDetection();
+            });
+        }
+        
+        function resetDetection() {
+            isProcessing = false;
+            faceDetected = false;
+            faceDetectionStartTime = null;
+            
+            setTimeout(() => {
+                const resultElement = document.getElementById('result');
+                resultElement.textContent = '';
+                resultElement.className = '';
+            }, 5000);
+        }
+        
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Iniciando sistema...');
+            try {
+                await loadModels();
+                await initCamera();
+            } catch (error) {
+                console.error('Erro na inicialização:', error);
+                alert('Erro ao inicializar o sistema. Recarregue a página.');
+            }
+        });
+
+        document.getElementById('captureButton').addEventListener('click', startCountdown);
+        
+        document.getElementById('sensitivitySlider').addEventListener('input', function() {
+            currentSensitivity = parseFloat(this.value);
+            document.getElementById('sensitivityValue').textContent = currentSensitivity;
+        });
+        
+        document.getElementById('debugMode').addEventListener('change', function() {
+            debugMode = this.checked;
+            if (!debugMode) {
+                document.getElementById('debugInfo').style.display = 'none';
+            }
+        });
+        
+        // Cleanup ao sair da página
+        window.addEventListener('beforeunload', () => {
+            if (detectionInterval) clearInterval(detectionInterval);
+            if (countdownInterval) clearInterval(countdownInterval);
+        });
+    </script>
+</body>
+</html>

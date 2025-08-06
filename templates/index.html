@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reconhecimento Facial</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --hover-color: #224abe;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        .main-content {
+            padding-bottom: 40px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            background: rgba(255, 255, 255, 0.98);
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .welcome-title {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-subtitle {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .feature-card.primary:hover { border-color: var(--primary-color); }
+        .feature-card.success:hover { border-color: var(--success-color); }
+        .feature-card.info:hover { border-color: var(--info-color); }
+        .feature-card.warning:hover { border-color: var(--warning-color); }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card.primary .feature-icon { color: var(--primary-color); }
+        .feature-card.success .feature-icon { color: var(--success-color); }
+        .feature-card.info .feature-icon { color: var(--info-color); }
+        .feature-card.warning .feature-icon { color: var(--warning-color); }
+
+        .feature-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .feature-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding-top: 140px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .card {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            .welcome-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'menu.html' %}
+    
+    <div class="main-content">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card">
+                        <div class="welcome-section">
+                            <h1 class="welcome-title">Bem-vindo ao Sistema de Reconhecimento Facial</h1>
+                            <p class="welcome-subtitle">Escolha uma das opções abaixo para começar</p>
+                        </div>
+                        
+                        <div class="feature-grid">
+                            <a href="{{ url_for('login') }}" class="feature-card info">
+                                <i class="fas fa-sign-in-alt feature-icon"></i>
+                                <h3 class="feature-title">Login Facial</h3>
+                                <p class="feature-description">Acesse o sistema via reconhecimento facial</p>
+                            </a>
+
+                            <a href="{{ url_for('captura_fotos') }}" class="feature-card info">
+                                <i class="fas fa-camera feature-icon"></i>
+                                <h3 class="feature-title">Captura de Fotos</h3>
+                                <p class="feature-description">Capture fotos dos usuários para o sistema</p>
+                            </a>
+                            
+                            <a href="{{ url_for('exportar_login') }}" class="feature-card warning">
+                                <i class="fas fa-file-export feature-icon"></i>
+                                <h3 class="feature-title">Exportar Registros</h3>
+                                <p class="feature-description">Exporte os registros de acesso</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

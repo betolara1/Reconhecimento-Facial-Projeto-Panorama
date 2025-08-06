@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Facial Otimizado</title>
+    
+    <!-- Meta tags para melhorar a experiência no navegador mobile -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Login Facial">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 10px; /* Adaptação para melhor espaçamento */
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 900px;
+            width: 100%; 
+            margin: 0 auto; /* Centraliza o container */
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.2em;
+        }
+        
+        .performance-info {
+            background: #f0f8ff;
+            border: 1px solid #4CAF50;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            aspect-ratio: 4 / 3; /* Make height responsive */
+        }
+        
+        #videoElement {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+        
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+            margin-right: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .status-indicator.active {
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+        
+        .performance-meter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+        }
+        
+        .face-guide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 45%; /* Was 180px */
+            height: 60%; /* Was 220px */
+            border: 2px dashed rgba(255,255,255,0.6);
+            border-radius: 50%;
+        }
+        
+        .capture-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            min-width: 200px;
+        }
+        
+        .capture-btn:hover:not(:disabled) {
+            transform: translateX(-50%) translateY(-3px);
+            box-shadow: 0 8px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .capture-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .flip-camera-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 10;
+            padding: 8px 12px;
+            font-size: 14px;
+            background-color: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.5);
+            color: white;
+            pointer-events: auto; /* Make it clickable */
+            border-radius: 25px; /* Match other buttons */
+            cursor: pointer;
+        }
+
+        .flip-camera-btn:hover {
+            background-color: rgba(0,0,0,0.6);
+        }
+        
+        #countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            text-align: center;
+            border-radius: 50%;
+            display: none;
+            border: 3px solid #4CAF50;
+        }
+        
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .result-success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .result-error {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+        }
+        
+        .result-processing {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        
+        .settings-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .setting-item {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .debug-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .instruction {
+            text-align: center;
+            margin: 15px 0;
+            color: #666;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 0 auto; /* Manter centralizado */
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .btn {
+                width: 90%;
+                max-width: 380px;
+                text-align: center;
+                padding: 12px;
+            }
+
+            .performance-info, .instruction {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+            }
+            .container {
+                padding: 15px;
+                min-height: 100vh;
+                border-radius: 0;
+                margin: 0; /* Ocupar tela toda */
+            }
+            h1 {
+                font-size: 1.6em;
+            }
+            .face-guide {
+                width: 55%;
+                height: 60%;
+            }
+            .capture-btn {
+                padding: 14px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'menu.html' %}
+    
+    <div class="container">
+        <h1>⚡ Login Facial Otimizado</h1>
+        
+        <div class="performance-info">
+            <strong>🚀 Sistema Otimizado:</strong> Processamento rápido (2-5 segundos) | 
+            Cache inteligente | Threshold ajustável
+        </div>
+        
+        <div class="camera-container">
+            <video id="videoElement" autoplay muted playsinline></video>
+            <div class="overlay">
+                <div class="status-bar">
+                    <div style="display: flex; align-items: center;">
+                        <div class="status-indicator" id="faceStatus"></div>
+                        <span id="statusMessage">Inicializando...</span>
+                    </div>
+                    <div class="performance-meter">
+                        <span id="performanceInfo">Aguardando...</span>
+                    </div>
+                </div>
+                
+                <button id="flipCameraButton" class="btn flip-camera-btn" style="display: none;">🔄 Virar</button>
+                
+                <div class="face-guide"></div>
+                <div id="countdown"></div>
+                
+                <button id="captureBtn" class="capture-btn" onclick="captureImage()">
+                    ⚡ Capturar Rápido
+                </button>
+            </div>
+        </div>
+        
+        <div id="result"></div>
+        
+        <div class="instruction">
+            <strong>📋 Instruções Otimizadas:</strong><br>
+            • Posicione seu rosto no círculo guia<br>
+            • Mantenha boa iluminação (evite contraluz)<br>
+            • Olhe diretamente para a câmera<br>
+            • Processamento otimizado: 2-5 segundos
+        </div>
+        
+        <div class="controls">
+            <a href="/" class="btn btn-secondary">← Menu</a>
+            <button onclick="updateCache()" class="btn btn-secondary">🔄 Atualizar Cache</button>
+            <button onclick="toggleSettings()" class="btn btn-secondary">⚙️ Configurações</button>
+            <button onclick="toggleDebug()" class="btn btn-secondary">🐛 Debug</button>
+        </div>
+        
+        <div id="settingsPanel" class="settings-panel">
+            <h3>⚙️ Configurações Avançadas</h3>
+            <div class="setting-item">
+                <label>Sensibilidade (Threshold):</label>
+                <div>
+                    <input type="range" id="thresholdSlider" min="0.3" max="0.7" step="0.05" value="0.6">
+                    <span id="thresholdValue">0.6</span>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label>Qualidade da imagem:</label>
+                <select id="qualitySelect">
+                    <option value="0.6">Rápida (0.6)</option>
+                    <option value="0.8" selected>Balanceada (0.8)</option>
+                    <option value="0.9">Alta (0.9)</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="debugInfo" class="debug-info"></div>
+    </div>
+
+    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script>
+        let video;
+        let isCapturing = false;
+        let currentThreshold = 0.6; // Aumentado de 0.5 para 0.6
+        let imageQuality = 0.8;
+        let debugMode = false;
+        let faceApiLoaded = false;
+        let faceDetectionInterval;
+        let currentStream;
+        let currentFacingMode = 'user';
+
+        // Carregar modelos da face-api.js
+        async function loadFaceApiModels() {
+            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+            try {
+                console.log("Carregando modelos da face-api...");
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                console.log("Modelos carregados.");
+                faceApiLoaded = true;
+                document.getElementById('statusMessage').textContent = 'Câmera ativa - Detector de face pronto';
+                startFaceDetection();
+            } catch (error) {
+                console.error("Erro ao carregar modelos da face-api:", error);
+                document.getElementById('statusMessage').textContent = 'Erro ao carregar detector de face.';
+            }
+        }
+        
+        // Inicializar câmera
+        async function initCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+
+            try {
+                console.log('🎥 Inicializando câmera otimizada...');
+                
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640, max: 800 },  // Limitar resolução para performance
+                        height: { ideal: 480, max: 600 },
+                        facingMode: currentFacingMode,
+                        frameRate: { ideal: 30, max: 30 }
+                    }
+                });
+                
+                currentStream = stream;
+                video = document.getElementById('videoElement');
+                video.srcObject = stream;
+                
+                video.onloadedmetadata = () => {
+                    console.log('✅ Câmera carregada');
+                    document.getElementById('statusMessage').textContent = 'Câmera ativa - Sistema otimizado';
+                    document.getElementById('faceStatus').classList.add('active');
+                    document.getElementById('performanceInfo').textContent = 'Pronto';
+                    
+                    loadFaceApiModels(); // Carrega os modelos depois que a câmera estiver pronta
+                    // Testar conexão com servidor
+                    testServerConnection();
+                };
+                
+            } catch (error) {
+                console.error('❌ Erro na câmera:', error);
+                handleCameraError(error);
+            }
+        }
+        
+        async function testServerConnection() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    const cacheInfo = `Cache: ${data.cache.cached_users} usuários`;
+                    document.getElementById('performanceInfo').textContent = cacheInfo;
+                    
+                    if (debugMode) {
+                        addDebugInfo('Sistema', data);
+                    }
+                }
+            } catch (error) {
+                document.getElementById('performanceInfo').textContent = 'Erro conexão';
+                console.error('Erro ao testar servidor:', error);
+            }
+        }
+        
+        function handleCameraError(error) {
+            let message = 'Erro câmera: ';
+            switch(error.name) {
+                case 'NotAllowedError':
+                    message += 'Permissão negada';
+                    break;
+                case 'NotFoundError':
+                    message += 'Câmera não encontrada';
+                    break;
+                default:
+                    message += 'Erro desconhecido';
+            }
+            
+            document.getElementById('statusMessage').textContent = message;
+            document.getElementById('result').innerHTML = `
+                <div class="result-error">❌ ${message}</div>
+            `;
+        }
+        
+        async function captureImage(isAuto = false) {
+            if (isCapturing) return;
+            
+            // Se a captura foi manual, para a detecção automática
+            if (!isAuto && faceDetectionInterval) {
+                clearInterval(faceDetectionInterval);
+            }
+
+            isCapturing = true;
+            const captureBtn = document.getElementById('captureBtn');
+            const result = document.getElementById('result');
+            const statusMessage = document.getElementById('statusMessage');
+            const countdown = document.getElementById('countdown');
+            const performanceInfo = document.getElementById('performanceInfo');
+            
+            // Desabilitar botão
+            captureBtn.disabled = true;
+            captureBtn.textContent = '⏳ Processando...';
+            
+            const startTime = performance.now();
+            
+            try {
+                // Pular countdown na captura automática
+                if (!isAuto) {
+                    statusMessage.textContent = 'Preparando captura...';
+                    countdown.style.display = 'block';
+                    
+                    for (let i = 3; i > 0; i--) {
+                        countdown.textContent = i;
+                        await new Promise(resolve => setTimeout(resolve, 800)); // Mais rápido
+                    }
+                    
+                    countdown.style.display = 'none';
+                }
+
+                statusMessage.textContent = 'Capturando...';
+                
+                // Capturar frame
+                const canvas = document.getElementById('canvas');
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const imageData = canvas.toDataURL('image/jpeg', imageQuality);
+                
+                // Mostrar status de processamento
+                result.innerHTML = '<div class="result-processing">⚡ Processamento otimizado em andamento...</div>';
+                statusMessage.textContent = 'Analisando face...';
+                performanceInfo.textContent = 'Processando...';
+                
+                // Enviar para servidor
+                const requestStart = performance.now();
+                const response = await fetch('/process_image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        image: imageData,
+                        threshold: currentThreshold
+                    })
+                });
+                
+                const data = await response.json();
+                const totalTime = performance.now() - startTime;
+                
+                performanceInfo.textContent = `${data.processing_time || 'N/A'}s servidor | ${(totalTime/1000).toFixed(1)}s total`;
+                
+                if (debugMode) {
+                    addDebugInfo('Reconhecimento', data);
+                }
+                
+                if (data.success) {
+                    result.innerHTML = `
+                        <div class="result-success">
+                            ✅ ${data.message}<br>
+                            <small>Confiança: ${data.confidence}% | Tempo: ${data.processing_time}s</small>
+                        </div>
+                    `;
+                    statusMessage.textContent = 'Login realizado!';
+                    
+                    // Redirecionar após 3 segundos
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                    
+                } else {
+                    result.innerHTML = `
+                        <div class="result-error">
+                            ❌ ${data.message}<br>
+                            <small>
+                                ${data.debug ? `Melhor match: ${data.debug.best_match_name || 'Nenhum'} (${data.debug.best_distance})` : ''}
+                                | Usuários: ${data.debug?.users_checked || 'N/A'}
+                            </small>
+                        </div>
+                    `;
+                    statusMessage.textContent = 'Falha - Tente novamente';
+                    
+                    // Reabilitar botão
+                    setTimeout(() => {
+                        captureBtn.disabled = false;
+                        captureBtn.textContent = '⚡ Tentar Novamente';
+                        isCapturing = false;
+                        startFaceDetection(); // Reinicia a detecção
+                    }, 3000);
+                }
+                
+            } catch (error) {
+                const totalTime = performance.now() - startTime;
+                console.error('Erro no processamento:', error);
+                
+                result.innerHTML = `
+                    <div class="result-error">
+                        ⚠️ Erro de conexão: ${error.message}<br>
+                        <small>Tempo: ${(totalTime/1000).toFixed(1)}s</small>
+                    </div>
+                `;
+                statusMessage.textContent = 'Erro de conexão';
+                performanceInfo.textContent = 'Erro';
+                
+                // Reabilitar botão
+                setTimeout(() => {
+                    captureBtn.disabled = false;
+                    captureBtn.textContent = '⚡ Tentar Novamente';
+                    isCapturing = false;
+                    startFaceDetection(); // Reinicia a detecção
+                }, 3000);
+            }
+        }
+        
+        async function updateCache() {
+            try {
+                document.getElementById('performanceInfo').textContent = 'Atualizando...';
+                
+                const response = await fetch('/update_cache', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('performanceInfo').textContent = `Cache: ${data.users.length} usuários`;
+                    
+                    if (debugMode) {
+                        addDebugInfo('Cache Update', data);
+                    }
+                    
+                    // Mostrar feedback temporário
+                    const result = document.getElementById('result');
+                    result.innerHTML = '<div class="result-success">✅ Cache atualizado!</div>';
+                    setTimeout(() => {
+                        result.innerHTML = '';
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar cache:', error);
+                document.getElementById('performanceInfo').textContent = 'Erro cache';
+            }
+        }
+        
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.style.display = debugMode ? 'block' : 'none';
+            
+            if (!debugMode) {
+                debugInfo.innerHTML = '';
+            }
+        }
+        
+        function addDebugInfo(type, data) {
+            if (!debugMode) return;
+            
+            const debugInfo = document.getElementById('debugInfo');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            debugInfo.innerHTML += `
+                <div>
+                    <strong>[${timestamp}] ${type}:</strong><br>
+                    ${JSON.stringify(data, null, 2)}
+                </div>
+                <hr>
+            `;
+            debugInfo.scrollTop = debugInfo.scrollHeight;
+        }
+        
+        // Iniciar detecção de faces
+        function startFaceDetection() {
+            if (!faceApiLoaded) return;
+            console.log("Iniciando detecção de face...");
+
+            faceDetectionInterval = setInterval(async () => {
+                if (isCapturing || !video) return;
+
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+
+                if (detections.length > 0) {
+                    console.log("Rosto detectado!");
+                    document.getElementById('statusMessage').textContent = 'Rosto detectado! Capturando...';
+                    document.getElementById('faceStatus').classList.add('active');
+                    
+                    // Para o intervalo para não capturar múltiplas vezes
+                    clearInterval(faceDetectionInterval);
+                    
+                    // Adiciona um pequeno delay antes de capturar para garantir que o usuário está estável
+                    setTimeout(() => {
+                        captureImage(true); // Chama a captura automática
+                    }, 500);
+
+                } else {
+                    document.getElementById('statusMessage').textContent = 'Aponte o rosto para a câmera...';
+                    document.getElementById('faceStatus').classList.remove('active');
+                }
+            }, 1000); // Verifica a cada segundo
+        }
+
+        function checkForMultipleCameras() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                console.log("enumerateDevices() not supported.");
+                return;
+            }
+
+            navigator.mediaDevices.enumerateDevices()
+                .then(function(devices) {
+                    const videoInputs = devices.filter(device => device.kind === 'videoinput');
+                    if (videoInputs.length > 1) {
+                        document.getElementById('flipCameraButton').style.display = 'block';
+                    }
+                })
+                .catch(function(err) {
+                    console.log(err.name + ": " + err.message);
+                });
+        }
+
+        function flipCamera() {
+            currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+            if (faceDetectionInterval) {
+                clearInterval(faceDetectionInterval);
+            }
+            initCamera();
+        }
+        
+        // Event listeners
+        document.getElementById('thresholdSlider').addEventListener('input', function() {
+            currentThreshold = parseFloat(this.value);
+            document.getElementById('thresholdValue').textContent = currentThreshold;
+        });
+        
+        document.getElementById('qualitySelect').addEventListener('change', function() {
+            imageQuality = parseFloat(this.value);
+        });
+        
+        document.getElementById('flipCameraButton').addEventListener('click', flipCamera);
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Iniciando sistema otimizado...');
+            initCamera();
+            checkForMultipleCameras();
+        });
+        
+        // Cleanup
+        window.addEventListener('beforeunload', () => {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            if (faceDetectionInterval) {
+                clearInterval(faceDetectionInterval);
+            }
+        });
+    </script>
+</body>
+</html>

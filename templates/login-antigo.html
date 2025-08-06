@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Facial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a6cf7;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        
+        .camera-container {
+            position: relative;
+            width: 640px;
+            margin: 0 auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        #videoElement {
+            width: 100%;
+            height: 480px;
+            display: block;
+            background-color: #000;
+            transform: scaleX(-1); /* Espelhar vídeo para experiência mais natural */
+        }
+        
+        #countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 72px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            text-align: center;
+            border-radius: 50%;
+            display: none;
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+        
+        .status-indicator.active {
+            background-color: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+        
+        .detection-message {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .btn-primary {
+            background-color: #4a6cf7;
+            color: white;
+            box-shadow: 0 4px 6px rgba(74, 108, 247, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a5ce5;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(74, 108, 247, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #f5f7fa;
+            color: #4a6cf7;
+            border: 1px solid #4a6cf7;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e9ecf2;
+            transform: translateY(-2px);
+        }
+        
+        .capture-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        
+        #result {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: 500;
+            height: 30px;
+        }
+        
+        .instruction {
+            text-align: center;
+            margin: 15px 0;
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 15px;
+        }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            z-index: 1000;
+        }
+
+        .face-box {
+            position: absolute;
+            border: 2px solid #4CAF50;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    {% include 'menu.html' %}
+    
+    <div id="loading">Carregando modelos de reconhecimento facial...</div>
+
+    <div class="container">
+        <h1>Login Facial</h1>
+        
+        <div class="camera-container">
+            <video id="videoElement" autoplay muted></video>
+            <div id="faceBox" class="face-box" style="display: none;"></div>
+            <div id="countdown"></div>
+            <div class="status-indicator" id="faceStatus"></div>
+            <div class="detection-message" id="detectionMessage">Aguardando rosto...</div>
+            <button id="captureButton" class="btn btn-primary capture-btn">Verificar Manualmente</button>
+        </div>
+        
+        <div id="result"></div>
+        
+        <p class="instruction">O reconhecimento iniciará automaticamente</p>
+        
+        <div class="controls">
+            <button onclick="window.location.href='/'" class="btn btn-secondary">Voltar</button>
+        </div>
+    </div>
+    
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+    <script>
+        let countdownInterval;
+        let faceDetected = false;
+        let faceDetectionStartTime = null;
+        let isProcessing = false;
+        let video;
+        let isModelLoaded = false;
+        let detectionInterval;
+        
+        async function loadModels() {
+            console.log('Tentando carregar modelos do CDN...');
+            try {
+                // Tentar carregar do CDN primeiro
+                await faceapi.nets.ssdMobilenetv1.loadFromUri('https://justadudewhohacks.github.io/face-api.js/weights');
+                await faceapi.nets.faceLandmark68Net.loadFromUri('https://justadudewhohacks.github.io/face-api.js/weights');
+                console.log('Modelos carregados do CDN com sucesso!');
+            } catch (error) {
+                console.log('Falha ao carregar do CDN, tentando servidor local...');
+                try {
+                    // Tentar carregar do servidor local como fallback
+                    await faceapi.nets.ssdMobilenetv1.loadFromUri('https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights');
+                    await faceapi.nets.faceLandmark68Net.loadFromUri('https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights');
+                    console.log('Modelos carregados do servidor local com sucesso!');
+                } catch (fallbackError) {
+                    console.error('Erro ao carregar modelos do servidor local:', fallbackError);
+                    throw new Error('Não foi possível carregar os modelos de nenhuma fonte.');
+                }
+            }
+            isModelLoaded = true;
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        async function initCamera() {
+            console.log('Tentando acessar a câmera...');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: {
+                        width: 640,
+                        height: 480,
+                        facingMode: 'user'
+                    }
+                });
+                console.log('Acesso à câmera concedido!');
+                video = document.getElementById('videoElement');
+                video.srcObject = stream;
+                
+                video.onloadedmetadata = () => {
+                    console.log('Vídeo carregado, iniciando detecção facial...');
+                    startFaceDetection();
+                };
+            } catch (err) {
+                console.error("Erro detalhado ao acessar a câmera: ", err);
+                let mensagem = "Erro ao acessar a câmera. ";
+                if (err.name === 'NotAllowedError') {
+                    mensagem += "Por favor, permita o acesso à câmera nas configurações do seu navegador.";
+                } else if (err.name === 'NotFoundError') {
+                    mensagem += "Nenhuma câmera foi encontrada no seu dispositivo.";
+                } else {
+                    mensagem += "Por favor, verifique se sua câmera está conectada e funcionando.";
+                }
+                alert(mensagem);
+            }
+        }
+
+        async function startFaceDetection() {
+            if (!isModelLoaded) {
+                console.log('Modelos ainda não carregados, aguardando...');
+                return;
+            }
+            console.log('Iniciando detecção facial...');
+            const videoEl = document.getElementById('videoElement');
+            const statusIndicator = document.getElementById('faceStatus');
+            const detectionMessage = document.getElementById('detectionMessage');
+            const faceBox = document.getElementById('faceBox');
+
+            // Limpar intervalo anterior se existir
+            if (detectionInterval) clearInterval(detectionInterval);
+
+            // Criar intervalo para detecção
+            detectionInterval = setInterval(async () => {
+                if (isProcessing) return;
+
+                try {
+                    const detection = await faceapi.detectSingleFace(
+                        videoEl,
+                        new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 })
+                    );
+
+                    if (detection) {
+                        const { x, y, width, height } = detection.box;
+                        // O vídeo é espelhado, então precisamos ajustar a posição x
+                        faceBox.style.left = (videoEl.width - x - width) + 'px';
+                        faceBox.style.top = y + 'px';
+                        faceBox.style.width = width + 'px';
+                        faceBox.style.height = height + 'px';
+                        faceBox.style.display = 'block';
+
+                        const faceArea = detection.box.width * detection.box.height;
+                        const minArea = 20000; // Área mínima aceitável
+
+                        if (faceArea < minArea) {
+                            statusIndicator.classList.remove('active');
+                            detectionMessage.textContent = 'Por favor, aproxime-se mais da câmera';
+                            faceDetected = false;
+                            faceDetectionStartTime = null;
+                            return;
+                        }
+
+                        // Rosto detectado e bem posicionado
+                        statusIndicator.classList.add('active');
+                        
+                        if (!faceDetected) {
+                            faceDetected = true;
+                            faceDetectionStartTime = Date.now();
+                            detectionMessage.textContent = 'Rosto detectado! Aguarde...';
+                        }
+                        
+                        const elapsedTime = (Date.now() - faceDetectionStartTime) / 1000;
+                        
+                        if (elapsedTime >= 1.5 && !isProcessing) {
+                            detectionMessage.textContent = 'Preparando para capturar...';
+                            startCountdown();
+                        }
+                    } else {
+                        faceBox.style.display = 'none';
+                        statusIndicator.classList.remove('active');
+                        faceDetected = false;
+                        faceDetectionStartTime = null;
+                        detectionMessage.textContent = 'Aguardando rosto...';
+                    }
+                } catch (error) {
+                    console.error('Erro na detecção:', error);
+                }
+            }, 100); // Verificar a cada 100ms
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Iniciando carregamento dos modelos...');
+            try {
+                await loadModels();
+                console.log('Modelos carregados com sucesso!');
+                await initCamera();
+                console.log('Câmera inicializada com sucesso!');
+            } catch (error) {
+                console.error('Erro durante a inicialização:', error);
+                alert('Ocorreu um erro durante a inicialização. Por favor, verifique o console para mais detalhes.');
+            }
+        });
+
+        document.getElementById('captureButton').addEventListener('click', function() {
+            startCountdown();
+        });
+
+        function startCountdown() {
+            if (isProcessing) return;
+            
+            isProcessing = true;
+            const countdownElement = document.getElementById('countdown');
+            const resultElement = document.getElementById('result');
+            const captureButton = document.getElementById('captureButton');
+            const detectionMessage = document.getElementById('detectionMessage');
+            
+            captureButton.style.display = 'none';
+            resultElement.textContent = '';
+            countdownElement.style.display = 'block';
+            detectionMessage.textContent = 'Capturando em...';
+            
+            let count = 2;
+            countdownElement.textContent = count;
+            
+            countdownInterval = setInterval(() => {
+                count--;
+                countdownElement.textContent = count;
+                
+                if (count <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownElement.style.display = 'none';
+                    detectionMessage.textContent = 'Capturando...';
+                    captureAndRecognize();
+                }
+            }, 1000);
+        }
+
+        function captureAndRecognize() {
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            const resultElement = document.getElementById('result');
+            const captureButton = document.getElementById('captureButton');
+            const detectionMessage = document.getElementById('detectionMessage');
+            
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const dataURL = canvas.toDataURL('image/jpeg');
+            resultElement.textContent = 'Processando...';
+            resultElement.style.color = '#4a6cf7';
+            detectionMessage.textContent = 'Verificando identidade...';
+            
+            fetch('/process_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ image: dataURL })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    resultElement.textContent = data.message;
+                    resultElement.style.color = '#4CAF50';
+                    detectionMessage.textContent = 'Identidade verificada!';
+                    
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    resultElement.textContent = data.message;
+                    resultElement.style.color = '#F44336';
+                    captureButton.style.display = 'block';
+                    detectionMessage.textContent = 'Falha na verificação';
+                    isProcessing = false;
+                    
+                    faceDetected = false;
+                    faceDetectionStartTime = null;
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                resultElement.textContent = 'Erro ao processar imagem';
+                resultElement.style.color = '#F44336';
+                captureButton.style.display = 'block';
+                detectionMessage.textContent = 'Erro no processamento';
+                isProcessing = false;
+                
+                faceDetected = false;
+                faceDetectionStartTime = null;
+            });
+        }
+    </script>
+</body>
+</html> 

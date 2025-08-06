@@ -1,0 +1,9 @@
+1 - mata o gunicorn
+sudo pkill gunicorn
+
+
+2 - rodar o gunicorn em segundo plano
+cd /home/apipanorama/htdocs/apipanorama.jsatecsistemas.com.br
+gunicorn -c gunicorn.conf.py wsgi:app
+
+nohup gunicorn -c gunicorn.conf.py wsgi:app &

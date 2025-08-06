@@ -1,0 +1,133 @@
+# Documentação do Sistema de Reconhecimento Facial
+
+## 1. Visão Geral
+Este sistema implementa um controle de acesso baseado em reconhecimento facial, permitindo cadastro de usuários, captura de fotos para reconhecimento e autenticação facial.
+
+## 2. Estrutura de Arquivos
+
+### 2.1 Arquivos de Configuração
+- `.env`: Configurações de conexão com o banco de dados
+  - Define variáveis de ambiente para host, usuário, senha, nome do banco e porta
+  - Exemplo: DB_HOST=localhost, DB_USER=useradmin, etc.
+
+- `gunicorn.conf.py`: Configuração do servidor Gunicorn
+  - Bind: 127.0.0.1:8090
+  - Workers: 4
+  - Timeout: 120 segundos
+
+- `requirements.txt`: Lista de dependências do projeto
+  - Principais bibliotecas: Flask, face-recognition, opencv-python, mysql-connector-python
+  - Versões específicas para garantir compatibilidade
+
+### 2.2 Arquivos de Aplicação
+
+#### 2.2.1 Arquivos Principais
+- `app.py`: Arquivo principal da aplicação Flask
+  - Implementa todas as rotas e lógica do sistema
+  - Gerencia reconhecimento facial
+  - Manipula uploads de imagens
+  - Controla sessões e autenticação
+
+- `db.py`: Gerenciamento de conexão com banco de dados
+  - Implementa função get_db_connection()
+  - Utiliza variáveis do .env para configuração
+  - Gerencia conexões MySQL
+
+- `wsgi.py`: Ponto de entrada para o servidor WSGI
+  - Importa e executa a aplicação Flask
+
+#### 2.2.2 Templates HTML
+
+##### `index.html`
+- Página inicial do sistema
+- Menu principal com opções:
+  - Cadastrar Usuário
+  - Capturar Fotos
+  - Login Facial
+  - Exportar Registros
+- Design responsivo com Bootstrap
+
+##### `cadastro.html`
+- Formulário de cadastro de usuários
+- Campos:
+  - Nome completo
+  - Telefone
+  - CEP (com busca automática)
+  - Endereço completo
+- Validações em JavaScript
+- Integração com API de CEP
+- Feedback visual com toasts
+
+##### `captura_fotos.html`
+- Interface para captura de fotos dos usuários
+- Funcionalidades:
+  - Seleção de usuário
+  - Preview da câmera
+  - Captura de imagem
+  - Confirmação visual
+  - Salvamento no servidor
+- Controles de câmera e feedback em tempo real
+
+##### `login.html`
+- Interface de autenticação facial
+- Recursos:
+  - Detecção facial em tempo real
+  - Feedback visual do status
+  - Captura automática
+  - Verificação de identidade
+  - Redirecionamento após autenticação
+
+## 3. Funcionalidades Principais
+
+### 3.1 Cadastro de Usuários
+- Formulário completo de dados pessoais
+- Validação de campos em tempo real
+- Integração com API de CEP
+- Feedback visual de sucesso/erro
+- Armazenamento em banco de dados MySQL
+
+### 3.2 Captura de Fotos
+- Seleção de usuário cadastrado
+- Interface intuitiva de captura
+- Preview em tempo real
+- Validação de qualidade da imagem
+- Armazenamento organizado das fotos
+
+### 3.3 Reconhecimento Facial
+- Detecção facial em tempo real
+- Comparação com banco de imagens
+- Threshold de similaridade configurável
+- Feedback visual do processo
+- Registro de acessos
+
+### 3.4 Exportação de Registros
+- Geração de relatórios em CSV
+- Filtros por data
+- Informações detalhadas de acesso
+- Download automático
+
+## 4. Segurança
+- Proteção contra SQL Injection
+- Validação de dados de entrada
+- Controle de acesso por rota
+- Armazenamento seguro de senhas
+- Tratamento de erros robusto
+
+## 5. Requisitos Técnicos
+- Python 3.x
+- MySQL Server
+- Bibliotecas específicas (ver requirements.txt)
+- Câmera web compatível
+- Servidor web com suporte a WSGI
+
+## 6. Manutenção
+- Logs de erro detalhados
+- Backup automático do banco de dados
+- Monitoramento de performance
+- Atualizações de segurança
+
+## 7. Considerações de Deployment
+- Configuração do servidor Gunicorn
+- Configuração do banco de dados
+- Permissões de diretório
+- Backup e recuperação

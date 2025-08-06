@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cadastro de Usuário</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 2rem 0;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            background: rgba(255, 255, 255, 0.98);
+            padding: 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card-header {
+            background: linear-gradient(45deg, #4e73df, #224abe);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem;
+            border: none;
+        }
+        
+        .card-header h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+        
+        .card-body {
+            padding: 2rem;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            padding: 0.8rem;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.15);
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .input-group {
+            border-radius: 10px;
+        }
+        
+        .input-group .btn {
+            border-radius: 0 10px 10px 0;
+            padding: 0.8rem 1rem;
+        }
+        
+        .btn {
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            padding: 10px, 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #4e73df, #224abe);
+            border: none;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #858796, #60616f);
+            border: none;
+        }
+
+        .buttons-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+            background: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
+            color: #055160;
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-radius: 10px 0 0 10px;
+        }
+
+        /* Estilo para a foto do aluno */
+        .foto-container {
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .foto-aluno {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 10px auto;
+            display: block;
+        }
+
+        .foto-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .card-header h2 {
+                font-size: 1.5rem;
+            }
+            
+            .card-body {
+                padding: 1.5rem;
+            }
+        }
+        
+        /* Estilo personalizado para os toasts */
+        .toast-success {
+            background: linear-gradient(45deg, #1cc88a, #13855c) !important;
+            border-radius: 10px !important;
+            font-weight: 500;
+        }
+        
+        .toast-error {
+            background: linear-gradient(45deg, #e74a3b, #be392f) !important;
+            border-radius: 10px !important;
+            font-weight: 500;
+        }
+        
+        .toast-warning {
+            background: linear-gradient(45deg, #f6c23e, #dda20a) !important;
+            border-radius: 10px !important;
+            font-weight: 500;
+        }
+
+        /* Estilo para o autocomplete */
+        .ui-autocomplete {
+            max-height: 200px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 9999 !important;
+            background: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .ui-menu-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .ui-menu-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .ui-state-active {
+            background: #4e73df !important;
+            border: none !important;
+            color: white !important;
+            margin: 0 !important;
+        }
+
+        /* Estilo para o indicador de carregamento */
+        .ui-autocomplete-loading {
+            background: url('data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==') right center no-repeat;
+        }
+    </style>
+</head>
+<body>
+    {% include 'menu.html' %}
+    
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-center m-0">Cadastro de Usuário</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        {% with messages = get_flashed_messages() %}
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert alert-info">{{ message }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form id="cadastroForm" action="{{ url_for('cadastro') }}" method="POST">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="nome" class="form-label">Nome Completo</label>
+                                    <input type="text" class="form-control" id="nome" name="nome" required>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="cpf" class="form-label">CPF</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="cpf" name="cpf" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Campo oculto para a URL da foto -->
+                            <input type="hidden" id="foto_url" name="foto_url">
+
+                            <!-- Container para a foto do aluno -->
+                            <div id="fotoContainer" class="foto-container">
+                                <img id="fotoAluno" class="foto-aluno" src="" alt="Foto do aluno">
+                                <div class="foto-label">Foto do aluno</div>
+                            </div>
+
+                            <div class="buttons-container">
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Cadastrar
+                                    </button>
+                                    <a href="{{ url_for('index') }}" class="btn btn-secondary">Voltar</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Função para mostrar toast
+            function showToast(message, type) {
+                Toastify({
+                    text: message,
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    className: `toast-${type}`,
+                    stopOnFocus: true,
+                    close: true
+                }).showToast();
+            }
+
+            // Função para formatar CPF
+            function formatarCPF(cpf) {
+                if (!cpf) return '';
+                // Remove qualquer formatação existente
+                cpf = cpf.replace(/\D/g, '');
+                // Adiciona a formatação
+                return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            }
+
+            // Máscara para CPF
+            $('#cpf').mask('000.000.000-00');
+
+            // Configuração do autocomplete
+            $('#nome').autocomplete({
+                source: function(request, response) {
+                    $.ajax({
+                        url: '/api/buscar-aluno/' + request.term,
+                        method: 'GET',
+                        beforeSend: function() {
+                            $('#nome').addClass('ui-autocomplete-loading');
+                        },
+                        success: function(data) {
+                            $('#nome').removeClass('ui-autocomplete-loading');
+                            console.log('Dados recebidos:', data);
+                            if (Array.isArray(data)) {
+                                response(data.map(function(item) {
+                                    console.log('Item processado:', item);
+                                    return {
+                                        label: item.nome,
+                                        value: item.nome,
+                                        cpf: item.cpf ? formatarCPF(item.cpf) : '',
+                                        foto: item.foto || ''
+                                    };
+                                }));
+                            } else {
+                                showToast('Erro no formato dos dados recebidos', 'error');
+                                response([]);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            $('#nome').removeClass('ui-autocomplete-loading');
+                            console.error('Erro na busca:', xhr.responseText);
+                            showToast('Erro ao buscar alunos: ' + error, 'error');
+                            response([]);
+                        }
+                    });
+                },
+                minLength: 2,
+                select: function(event, ui) {
+                    if (ui.item) {
+                        console.log('Item selecionado:', ui.item);
+                        $('#cpf').val(ui.item.cpf || '');
+                        if (!ui.item.cpf) {
+                            showToast('CPF não encontrado para este aluno', 'warning');
+                        }
+                        
+                        // Atualizar a foto do aluno
+                        if (ui.item.foto) {
+                            console.log('URL da foto:', ui.item.foto);
+                            $('#fotoAluno').attr('src', ui.item.foto);
+                            $('#fotoContainer').show();
+                            $('#foto_url').val(ui.item.foto);
+                            
+                            // Adicionar handler de erro para a imagem
+                            $('#fotoAluno').on('error', function() {
+                                console.error('Erro ao carregar a imagem:', ui.item.foto);
+                                showToast('Não foi possível carregar a foto do aluno', 'error');
+                                $('#fotoContainer').hide();
+                                $('#foto_url').val('');
+                            });
+                        } else {
+                            console.log('Sem foto disponível');
+                            $('#fotoContainer').hide();
+                            $('#foto_url').val('');
+                            showToast('Aluno não possui foto cadastrada', 'warning');
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
