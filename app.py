@@ -16,20 +16,7 @@ import csv
 import requests
 from threading import Lock
 import io
-
-
-# Importe o Swagger
 from flasgger import Swagger 
-
-app = Flask(__name__)
-# Inicialize o Swagger
-swagger = Swagger(app, template={
-    "info": {
-        "title": "API de Reconhecimento Facial (Panorama)",
-        "description": "API para cadastro e autenticação de usuários via biometria facial.",
-        "version": "1.0.0"
-    }
-})
 
 
 # Configurar logging
@@ -41,6 +28,33 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 app.secret_key = 'sua_chave_secreta_muito_longa_e_aleatoria'
+
+
+# Inicialize o Swagger
+swagger_config = {
+    "headers": [
+    ],
+    "specs": [
+        {
+            "endpoint": 'apispec_1',
+            "route": '/apispec_1.json',
+            "rule_filter": lambda rule: True,  # all in
+            "model_filter": lambda tag: True,  # all in
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/apidocs/"
+}
+
+swagger = Swagger(app, config=swagger_config, template={
+    "info": {
+        "title": "API de Reconhecimento Facial (Panorama)",
+        "description": "API para cadastro e autenticação de usuários via biometria facial.",
+        "version": "1.0.0"
+    }
+})
+
 
 # Configuração do banco de dados
 db_config = {

@@ -28,6 +28,29 @@ graph TD
     API --> UI
 ```
 
+```
+
+---
+
+## 📸 Telas do Sistema (UI) no Navegador
+
+Dê uma olhada na cara do projeto através dessas capturas de tela prontas na pasta `images/`:
+
+### 🏠 Início
+![Início](images/inicio.png)
+
+### 📊 Dashboard e Acessos
+![Dashboard](images/dashboard.png)
+
+### 👤 Cadastro de Fotos / Captura
+![Cadastro de Fotos](images/cadastro_fotos.png)
+
+### 🔐 Autenticação Facial (Login)
+![Login](images/login.png)
+
+### 🔌 API / Swagger (Documentação)
+![Swagger](images/swagger.png)
+
 ---
 
 ## 3. 🚀 Como Rodar o Projeto
