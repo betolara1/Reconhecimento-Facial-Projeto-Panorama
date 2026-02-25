@@ -1,2 +1,5 @@
 .env
 set_modification.txt
+
+__pycache__/
+venv/

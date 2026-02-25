@@ -17,6 +17,21 @@ import requests
 from threading import Lock
 import io
 
+
+# Importe o Swagger
+from flasgger import Swagger 
+
+app = Flask(__name__)
+# Inicialize o Swagger
+swagger = Swagger(app, template={
+    "info": {
+        "title": "API de Reconhecimento Facial (Panorama)",
+        "description": "API para cadastro e autenticação de usuários via biometria facial.",
+        "version": "1.0.0"
+    }
+})
+
+
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -413,6 +428,27 @@ def cadastro():
     
 @app.route('/api/alunos_php')
 def get_alunos_php():
+    """
+    Obter Alunos sem Foto Registrada
+    Retorna alunos da API PHP externa que ainda não têm biometria cadastrada.
+    ---
+    tags:
+      - Integração Externa
+    responses:
+      200:
+        description: Lista de alunos.
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              nome:
+                type: string
+      500:
+        description: Erro ao consultar a API externa.
+    """
     try:
         # 1. Obter todos os alunos da API PHP
         url_php = "https://apppanorama.jsatecsistemas.com.br/api_alunos_para_reconhecimento.php"
@@ -473,6 +509,39 @@ def captura_fotos():
 # Rota para salvar foto
 @app.route('/salvar_foto', methods=['POST'])
 def salvar_foto():
+    """
+    Salvar Biometria de Aluno
+    Recebe os dados do usuário e sua foto em Base64, extrai o rosto e cadastra no banco.
+    ---
+    tags:
+      - Cadastro de Biometria
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            usuario_id_php:
+              type: integer
+              description: ID do usuário na API PHP externa
+            nome:
+              type: string
+              description: Nome completo
+            cpf:
+              type: string
+              description: CPF (opcional)
+            image:
+              type: string
+              description: Foto em formato Base64
+    responses:
+      200:
+        description: Biometria cadastrada com sucesso.
+      400:
+        description: Erro nos dados enviados (ex. dados faltando, qualidade da foto ruim).
+      500:
+        description: Erro interno do servidor ou de banco de dados.
+    """
     if request.method == 'POST':
         try:
             if not os.path.exists(UPLOAD_FOLDER):
@@ -569,7 +638,24 @@ def salvar_foto():
 @app.route('/verificar_qualidade_foto', methods=['POST'])
 def verificar_qualidade_foto():
     """
-    Verifica a qualidade da foto antes de salvar (opcional)
+    Verificar Qualidade de Foto
+    Verifica se a foto enviada é elegível para extração de rosto e biometria.
+    ---
+    tags:
+      - Cadastro de Biometria
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            image:
+              type: string
+              description: Imagem em Base64
+    responses:
+      200:
+        description: Retorna se a qualidade da foto está adequada ou inadequada.
     """
     try:
         data = request.json
@@ -621,7 +707,34 @@ def login():
 
 @app.route('/process_image', methods=['POST'])
 def process_image():
-    """Versão otimizada do processamento de imagem"""
+    """
+    Login via Reconhecimento Facial
+    Versão otimizada do processamento de imagem
+    ---
+    tags:
+      - Autenticação Facial
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            image:
+              type: string
+              description: Imagem do usuário em Base64
+            threshold:
+              type: number
+              description: Grau de tolerância para o reconhecimento (padrão 0.5)
+              example: 0.5
+    responses:
+      200:
+        description: Usuário Autenticado com Sucesso.
+      400:
+        description: Nenhum rosto encontrado, ou base64 inválido.
+      500:
+        description: Erro interno do servidor.
+    """
     start_time = time.time()
     
     try:
@@ -773,6 +886,29 @@ def update_cache():
 
 @app.route('/health')
 def health_check():
+    """
+    Verificação de Integridade da API
+    ---
+    tags:
+      - Monitoramento
+    responses:
+      200:
+        description: Retorna o status da API, Banco e Cache.
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: OK
+            database:
+              type: string
+              example: Connected
+            users_in_db:
+              type: integer
+              example: 15
+      500:
+        description: Erro de conexão com o banco ou cache.
+    """
     try:
         conn = get_db_connection()
         if conn:
