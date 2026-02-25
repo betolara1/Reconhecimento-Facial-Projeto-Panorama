@@ -37,9 +37,6 @@ Dê uma olhada na cara do projeto através dessas capturas de tela prontas na pa
 ### 🏠 Início
 ![Início](images/inicio.png)
 
-### 📊 Dashboard e Acessos
-![Dashboard](images/dashboard.png)
-
 ### 👤 Cadastro de Fotos / Captura
 ![Cadastro de Fotos](images/cadastro_fotos.png)
 
