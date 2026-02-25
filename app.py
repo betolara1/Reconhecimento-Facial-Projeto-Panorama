@@ -995,3 +995,10 @@ def exportar_login():
             cursor.close()
         if 'conn' in locals() and conn:
             conn.close()
+
+if __name__ == '__main__':
+    # Remover validação SSL caso consuma APIs externas
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    
+    app.run(host='0.0.0.0', port=8090, debug=True)
