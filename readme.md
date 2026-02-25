@@ -28,8 +28,6 @@ graph TD
     API --> UI
 ```
 
-```
-
 ---
 
 ## 📸 Telas do Sistema (UI) no Navegador
