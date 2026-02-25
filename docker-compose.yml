@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
-    container_name: panorama_app
+    container_name: reconhecimento_facial_app
     ports:
       - "8090:8090"
     volumes:
@@ -12,9 +12,9 @@ services:
       # O ".env" do projeto será lido automaticamente se estiver mapeado como volume
       # Mas para o banco estar no Docker, é preciso que DB_HOST seja "db"
       - DB_HOST=db
-      - DB_USER=admin
+      - DB_USER=root
       - DB_PASSWORD=
-      - DB_NAME=panorama_db
+      - DB_NAME=reconhecimento_facial
       - DB_PORT=3306
     depends_on:
       db:
@@ -22,12 +22,12 @@ services:
 
   db:
     image: mysql:8.0
-    container_name: panorama_db
+    container_name: reconhecimento_facial_db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD:
-      MYSQL_DATABASE: panorama_db
-      MYSQL_USER: admin
+      MYSQL_DATABASE: reconhecimento_facial
+      MYSQL_USER: root
       MYSQL_PASSWORD: 
     ports:
       - "3306:3306"
